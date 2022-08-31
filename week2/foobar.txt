@@ -1,0 +1,18 @@
+* let C be the grid computed by lcs()
+* let X and Y be sequences
+* i and j specify a location within C that you want to look at when reading out
+  the diff. (This makes more sense if you understand the LCS algorithm, but
+  it's not important.) When you call this function initially, just pass
+  i=len(X) and j=len(Y).
+function print_diff(C, X, Y, i, j)
+    if i > 0 and j > 0 and X[i-1] = Y[j-1]
+        print_diff(C, X, Y, i-1, j-1)
+        print "  " + X[i-1]
+    else if j > 0 and (i = 0 or C[i,j-1] ≥ C[i-1,j])
+        print_diff(C, X, Y, i, j-1)
+        print "> " + Y[j-1]
+    else if i > 0 and (j = 0 or C[i,j-1] < C[i-1,j])
+        print_diff(C, X, Y, i-1, j)
+        print "< " + X[i-1]
+    else
+        print ""

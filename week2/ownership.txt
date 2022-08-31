@@ -5,12 +5,13 @@ fn main() {
     let ref1 = &s;
     let ref2 = &ref1;
     let ref3 = &ref2;
-    s = String::from("goodbye");
+    s = String::from("goodbye"); //#
     println!("{}", ref3.to_uppercase());
 }
 ```
 
-
+can't be compiled, for when s is borrowed by ref, the text takes modification from s, 
+yet ref's lifetime is not ended, which is not allowed in Rust code. 
 
 Example 2:
 ```
@@ -20,7 +21,7 @@ fn drip_drop() -> &String {
 }
 ```
 
-
+can't be compiled. this function's return type contains a borrowed value, but there is no value for it to be borrowed from
 
 Example 3:
 ```
@@ -32,3 +33,5 @@ fn main() {
     println!("{}", s2);
 }
 ```
+
+can't be compiled. It seems Rust did't implement copy trait for the element stored in Vec<T>, neither gave mandate to transistion of ownership.

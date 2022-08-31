@@ -1,0 +1,5 @@
+{
+    "rust-analyzer.rustfmt.rangeFormatting.enable": true,
+    "files.autoSave": "onFocusChange",
+    "editor.formatOnSave": true
+}
