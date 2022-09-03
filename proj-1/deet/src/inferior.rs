@@ -43,8 +43,13 @@ impl Inferior {
         }
         let child = cmd.spawn().ok()?;
         let mut inferior = Inferior { child: child };
+        //  match inferior.continue_run(None).ok()? {
+        //     Status::Exited(exit_code) => println!("Child exited (status {})", exit_code),
+        //     Status::Signaled(signal) => println!("Child exited due to signal {}", signal),
+        //     Status::Stopped(signal, rip) => println!("Child stopped by signal {} at address {:#x}", signal, rip),
+        // }
         Some(inferior)
-        //! 看 bilibili Rust 补充知识，PKUFlyingPig 的历史 Commit 前后对比，一个个做 Millstone
+        ////! 看 bilibili Rust 补充知识，PKUFlyingPig 的历史 Commit 前后对比，一个个做 Millstone
         // println!(
         //     "Inferior::new not implemented! target={}, args={:?}",
         //     target, args
@@ -68,6 +73,21 @@ impl Inferior {
                 Status::Stopped(signal, regs.rip as usize)
             }
             other => panic!("waitpid returned unexpected status: {:?}", other),
+        })
+    }
+    pub fn continue_run(&self, signal: Option<signal::Signal>) -> Result<(), nix::Error> {
+        ptrace::cont(self.pid(), signal)?;
+        // 简单的理解是，cont指令将 inferior 的线程再次启动，另外类似的指令是PTRACE_SYSCALL
+        // 对 ptrace 的主观理解：
+        // Traceme用于跟踪。
+        // PTRACE_PEEKUSER 读取子进程运行时eax寄存器的值。要在子程序运行完，即 wait 后调用
+        // 一篇入门 ptrace 笔记：https://omasko.github.io/2018/04/19/ptrace%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0I/
+        Ok(match self.wait(None)? {
+            Status::Exited(exit_code) => println!("Child exited (status {})", exit_code),
+            Status::Signaled(signal) => println!("Child exited due to signal {}", signal),
+            Status::Stopped(signal, rip) => {
+                println!("Child stopped by signal {} at address {:#x}", signal, rip)
+            }
         })
     }
 }

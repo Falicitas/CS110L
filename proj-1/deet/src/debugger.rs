@@ -21,23 +21,26 @@ impl Debugger {
         let _ = readline.load_history(&history_path);
 
         Debugger {
-            target: target.to_string(),
+            target: target.to_string(), // 这里的target是cargo run X 的 X，
+            //比如 samples/sleepy_print。传给Inferior的也是该target，而 r/run 是 args 的一部分
             history_path,
             readline,
             inferior: None,
-        }
+        } //self.target
     }
 
     pub fn run(&mut self) {
         loop {
             match self.get_next_command() {
                 DebuggerCommand::Run(args) => {
+                    // println!("args: {:?}", args);
                     if let Some(inferior) = Inferior::new(&self.target, &args) {
                         // Create the inferior
                         self.inferior = Some(inferior);
                         // TODO (milestone 1): make the inferior run
                         // You may use self.inferior.as_mut().unwrap() to get a mutable reference
                         // to the Inferior object
+                        self.inferior.as_mut().unwrap().continue_run(None).unwrap();
                     } else {
                         println!("Error starting subprocess");
                     }
@@ -72,16 +75,18 @@ impl Debugger {
                     if line.trim().len() == 0 {
                         continue;
                     }
-                    self.readline.add_history_entry(line.as_str());
+                    self.readline.add_history_entry(line.as_str()); // 暂时没研究
                     if let Err(err) = self.readline.save_history(&self.history_path) {
                         println!(
                             "Warning: failed to save history file at {}: {}",
                             self.history_path, err
                         );
-                    }
+                    } // 暂时没研究
                     let tokens: Vec<&str> = line.split_whitespace().collect();
                     if let Some(cmd) = DebuggerCommand::from_tokens(&tokens) {
                         return cmd;
+                        //这里的cmd是 DebuggerCommand，判别了指令（enum类型）的类别后，将参数传给指令的值
+                        //Millstone1 示例代码的 r 3，对应cmd = DebuggerCommand::Run(Vec<String>{3})
                     } else {
                         println!("Unrecognized command.");
                     }

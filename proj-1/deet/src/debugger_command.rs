@@ -1,6 +1,7 @@
 pub enum DebuggerCommand {
     Quit,
     Run(Vec<String>),
+    Continue,
 }
 
 impl DebuggerCommand {
@@ -10,6 +11,7 @@ impl DebuggerCommand {
             "r" | "run" => {
                 let args = tokens[1..].to_vec();
                 Some(DebuggerCommand::Run(
+                    ////! 这里将以下打包好的参数给了 Run
                     args.iter().map(|s| s.to_string()).collect(),
                 ))
             }
