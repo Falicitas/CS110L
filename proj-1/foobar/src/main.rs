@@ -1,25 +1,32 @@
-struct Q {
-    data: String,
-}
-enum Message {
-    Quit,                       //无类型，不包含任何值
-    Move { x: i32, y: i32 },    //包含匿名结构体
-    Write(String),              //包含一个字符串
-    ChangeColor(u32, u32, u32), //包含三元组
+use nix::sys::ptrace;
+use nix::sys::signal;
+use nix::sys::wait::{waitpid, WaitPidFlag, WaitStatus};
+use nix::unistd::Pid;
+use std::os::unix::process::CommandExt;
+use std::process::Child;
+use std::process::Command;
+fn child_traceme() -> Result<(), std::io::Error> {
+    ptrace::traceme().or(Err(std::io::Error::new(
+        std::io::ErrorKind::Other,
+        "ptrace TRACEME failed",
+    )))
 }
 
-// #[derive(Debug)]
-impl Message {
-    fn print(&self) {
-        match self {
-            Message::Quit => (),
-            Message::ChangeColor(x, y, z) => (),
-            Message::Move { x, y } => println!("{} {}", x, y),
-            _ => (),
-        }
-    }
+pub fn pid(child: &mut Child) -> Pid {
+    nix::unistd::Pid::from_raw(child.id() as i32)
 }
+
 fn main() {
-    let x = Message::Quit;
-    let y = Message::Move { x: 1, y: 2 };
+    // let mut cmd = Command::new("samples/count"); //打印1 2 3 4 5
+    //                                              // cmd.args(args);
+    //                                              // unsafe {
+    //                                              //     cmd.pre_exec(child_traceme);
+    //                                              // }
+    // let mut child = cmd.spawn().ok().unwrap();
+    // // ptrace::cont(pid(&mut child), None).unwrap();
+    // // waitpid(pid(&mut child), None).unwrap();
+    let k = 10;
+    assert_eq!(Some(4).unwrap_or_else(|| None::<i32>), 4);
+    // assert_eq!(, 4);
+    // Some(4).unwrap_or_else(|| println!("hhhh"));
 }

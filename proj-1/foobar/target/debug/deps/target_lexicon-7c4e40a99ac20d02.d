@@ -1,0 +1,12 @@
+/home/kinesis/Desktop/CS110L/proj-1/foobar/target/debug/deps/target_lexicon-7c4e40a99ac20d02.rmeta: /home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/target-lexicon-0.10.0/src/lib.rs /home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/target-lexicon-0.10.0/src/host.rs /home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/target-lexicon-0.10.0/src/parse_error.rs /home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/target-lexicon-0.10.0/src/targets.rs /home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/target-lexicon-0.10.0/src/triple.rs /home/kinesis/Desktop/CS110L/proj-1/foobar/target/debug/build/target-lexicon-38557d0a9b78c7a3/out/host.rs
+
+/home/kinesis/Desktop/CS110L/proj-1/foobar/target/debug/deps/target_lexicon-7c4e40a99ac20d02.d: /home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/target-lexicon-0.10.0/src/lib.rs /home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/target-lexicon-0.10.0/src/host.rs /home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/target-lexicon-0.10.0/src/parse_error.rs /home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/target-lexicon-0.10.0/src/targets.rs /home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/target-lexicon-0.10.0/src/triple.rs /home/kinesis/Desktop/CS110L/proj-1/foobar/target/debug/build/target-lexicon-38557d0a9b78c7a3/out/host.rs
+
+/home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/target-lexicon-0.10.0/src/lib.rs:
+/home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/target-lexicon-0.10.0/src/host.rs:
+/home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/target-lexicon-0.10.0/src/parse_error.rs:
+/home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/target-lexicon-0.10.0/src/targets.rs:
+/home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/target-lexicon-0.10.0/src/triple.rs:
+/home/kinesis/Desktop/CS110L/proj-1/foobar/target/debug/build/target-lexicon-38557d0a9b78c7a3/out/host.rs:
+
+# env-dep:OUT_DIR=/home/kinesis/Desktop/CS110L/proj-1/foobar/target/debug/build/target-lexicon-38557d0a9b78c7a3/out

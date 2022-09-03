@@ -1,5 +1,5 @@
 use crate::debugger_command::DebuggerCommand;
-use crate::inferior::Inferior;
+use crate::inferior::{self, Inferior};
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 
@@ -32,8 +32,12 @@ impl Debugger {
     pub fn run(&mut self) {
         loop {
             match self.get_next_command() {
+                //至此在(deet)已获取r 3
                 DebuggerCommand::Run(args) => {
                     // println!("args: {:?}", args);
+                    if let Some(inferior) = &mut self.inferior {
+                        inferior.kill();
+                    }
                     if let Some(inferior) = Inferior::new(&self.target, &args) {
                         // Create the inferior
                         self.inferior = Some(inferior);
@@ -46,8 +50,22 @@ impl Debugger {
                     }
                 }
                 DebuggerCommand::Quit => {
+                    if let Some(inferior) = &mut self.inferior {
+                        inferior.kill();
+                    }
                     return;
                 }
+                DebuggerCommand::Continue => {
+                    if let None = &mut self.inferior {
+                        println!("Inferior doesn't exist");
+                        continue;
+                    }
+                    self.inferior
+                        .as_mut()
+                        .unwrap()
+                        .continue_run(None)
+                        .unwrap_or_else(|error| println!("{}", error));
+                } // println!("Inferior doesn't exist");
             }
         }
     }

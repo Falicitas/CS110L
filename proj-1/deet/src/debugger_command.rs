@@ -15,6 +15,7 @@ impl DebuggerCommand {
                     args.iter().map(|s| s.to_string()).collect(),
                 ))
             }
+            "c" | "cont" | "continue" => Some(DebuggerCommand::Continue),
             // Default case:
             _ => None,
         }

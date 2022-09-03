@@ -1,0 +1,10 @@
+/home/kinesis/Desktop/CS110L/proj-1/foobar/target/debug/deps/arrayvec-8ce27ae651844af5.rmeta: /home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/arrayvec-0.5.2/src/lib.rs /home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/arrayvec-0.5.2/src/maybe_uninit.rs /home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/arrayvec-0.5.2/src/array.rs /home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/arrayvec-0.5.2/src/array_string.rs /home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/arrayvec-0.5.2/src/char.rs /home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/arrayvec-0.5.2/src/errors.rs
+
+/home/kinesis/Desktop/CS110L/proj-1/foobar/target/debug/deps/arrayvec-8ce27ae651844af5.d: /home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/arrayvec-0.5.2/src/lib.rs /home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/arrayvec-0.5.2/src/maybe_uninit.rs /home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/arrayvec-0.5.2/src/array.rs /home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/arrayvec-0.5.2/src/array_string.rs /home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/arrayvec-0.5.2/src/char.rs /home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/arrayvec-0.5.2/src/errors.rs
+
+/home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/arrayvec-0.5.2/src/lib.rs:
+/home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/arrayvec-0.5.2/src/maybe_uninit.rs:
+/home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/arrayvec-0.5.2/src/array.rs:
+/home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/arrayvec-0.5.2/src/array_string.rs:
+/home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/arrayvec-0.5.2/src/char.rs:
+/home/kinesis/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-df7c3c540f42cdbd/arrayvec-0.5.2/src/errors.rs:
