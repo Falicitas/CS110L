@@ -1,5 +1,8 @@
+use std::process::exit;
+
 use crate::debugger_command::DebuggerCommand;
 use crate::dwarf_data::{DwarfData, Error as DwarfError};
+use crate::inferior::Status;
 use crate::inferior::{self, Inferior};
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
@@ -49,9 +52,9 @@ impl Debugger {
             match self.get_next_command() {
                 //至此在(deet)已获取r 3
                 DebuggerCommand::Run(args) => {
-                    // println!("args: {:?}", args);
-                    if let Some(inferior) = &mut self.inferior {
-                        inferior.kill();
+                    if self.inferior.is_some() {
+                        self.inferior.as_mut().unwrap().kill();
+                        self.inferior = None;
                     }
                     if let Some(inferior) = Inferior::new(&self.target, &args) {
                         // Create the inferior
@@ -59,27 +62,53 @@ impl Debugger {
                         // TODO (milestone 1): make the inferior run
                         // You may use self.inferior.as_mut().unwrap() to get a mutable reference
                         // to the Inferior object
-                        self.inferior.as_mut().unwrap().continue_run(None).unwrap();
+                        match self.inferior.as_mut().unwrap().continue_run(None).unwrap() {
+                            Status::Exited(exit_code) => {
+                                println!("Child exited (status {})", exit_code);
+                                self.inferior = None;
+                            }
+                            Status::Signaled(signal) => {
+                                println!("Child exited due to signal {}", signal);
+                                self.inferior = None;
+                            }
+                            Status::Stopped(signal, rip) => {
+                                ////! RE 会触发这个
+                                println!("Child stopped (signal {})", signal);
+                                let _line = self.debug_data.get_line_from_addr(rip);
+                                let _func = self.debug_data.get_function_from_addr(rip);
+                                if _line.is_some() && _func.is_some() {
+                                    println!("Stopped at {} ({})", _func.unwrap(), _line.unwrap());
+                                }
+                            }
+                        }
+                        // match
                     } else {
                         println!("Error starting subprocess");
                     }
-                }
-                DebuggerCommand::Quit => {
-                    if let Some(inferior) = &mut self.inferior {
-                        inferior.kill();
-                    }
-                    return;
                 }
                 DebuggerCommand::Continue => {
                     if let None = &mut self.inferior {
                         println!("Continue: Inferior doesn't exist");
                         continue;
                     }
-                    self.inferior
-                        .as_mut()
-                        .unwrap()
-                        .continue_run(None)
-                        .unwrap_or_else(|error| println!("{}", error));
+                    match self.inferior.as_mut().unwrap().continue_run(None).unwrap() {
+                        Status::Exited(exit_code) => {
+                            println!("Child exited (status {})", exit_code);
+                            self.inferior = None;
+                        }
+                        Status::Signaled(signal) => {
+                            println!("Child exited due to signal {}", signal);
+                            self.inferior = None;
+                        }
+                        Status::Stopped(signal, rip) => {
+                            println!("Child stopped (signal {})", signal);
+                            let _line = self.debug_data.get_line_from_addr(rip);
+                            let _func = self.debug_data.get_function_from_addr(rip);
+                            if _line.is_some() && _func.is_some() {
+                                println!("Stopped at {} ({})", _func.unwrap(), _line.unwrap());
+                            }
+                        }
+                    }
                 } // println!("Inferior doesn't exist");
                 DebuggerCommand::Backtrace => {
                     if self.inferior.is_none() {
@@ -96,6 +125,13 @@ impl Debugger {
                     {
                         println!("{}", error);
                     }
+                }
+                DebuggerCommand::Quit => {
+                    if self.inferior.is_some() {
+                        self.inferior.as_mut().unwrap().kill();
+                        self.inferior = None;
+                    }
+                    return;
                 }
             }
         }

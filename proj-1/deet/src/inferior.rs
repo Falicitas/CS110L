@@ -67,16 +67,6 @@ impl Inferior {
         nix::unistd::Pid::from_raw(self.child.id() as i32)
     }
 
-    /// kill the inferior, assume that the inferior is still alive
-    pub fn kill(&mut self) {
-        match self.child.kill() {
-            // .unwrap_or_else(|_| println!("command wasn't running"));
-            // .unwrap_or_else(|_| ());
-            Ok(()) => println!("Killing running inferior (pid {})", self.child.id()), //? 暂时没确认为什么可以正常调用.id，在 kill 之后
-            Err(_) => (),
-        } // whatever it's killed, the message upon isn't needed.
-    }
-
     /// Calls waitpid on this inferior and returns a Status to indicate the state of the process
     /// after the waitpid call.
     pub fn wait(&self, options: Option<WaitPidFlag>) -> Result<Status, nix::Error> {
@@ -92,21 +82,21 @@ impl Inferior {
     }
 
     /// wake up the paused inferior process
-    pub fn continue_run(&self, signal: Option<signal::Signal>) -> Result<(), nix::Error> {
+    pub fn continue_run(&self, signal: Option<signal::Signal>) -> Result<Status, nix::Error> {
         ptrace::cont(self.pid(), signal)?;
-
         // 简单的理解是，cont指令将 inferior 的线程再次启动，另外类似的指令是PTRACE_SYSCALL
         // 对 ptrace 的主观理解：
         // Traceme用于跟踪。
         // PTRACE_PEEKUSER 读取子进程运行时eax寄存器的值。要在子程序运行完，即 wait 后调用
         // 一篇入门 ptrace 笔记：https://omasko.github.io/2018/04/19/ptrace%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0I/
-        Ok(match self.wait(None)? {
-            Status::Exited(exit_code) => println!("Child exited (status {})", exit_code),
-            Status::Signaled(signal) => println!("Child exited due to signal {}", signal),
-            Status::Stopped(signal, rip) => {
-                println!("Child stopped by signal {} at address {:#x}", signal, rip)
-            }
-        })
+        self.wait(None)
+    }
+
+    /// kill the inferior, assume that the inferior is still alive
+    pub fn kill(&mut self) {
+        self.child.kill().unwrap();
+        self.wait(None).unwrap(); // to ensure child's process has been killed.
+        println!("Killing running inferior (pid {})", self.pid()); //? 暂时没确认为什么可以正常调用.id，在 kill 之后。一种猜想是 Child 的 ownership 还在，还可以正常访问其成员
     }
 
     pub fn print_backtrace(&mut self, debug_data: &DwarfData) -> Result<(), nix::Error> {
