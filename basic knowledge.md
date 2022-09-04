@@ -70,6 +70,10 @@ impl Message{
     }
 }
 
+//! 结构体成员的值的ownership如何拿出来？
+//cannot borrow `self.child` as mutable, as it is behind a `&` reference
+//`self` is a `&` reference, so the data it refers to cannot be borrowed as mutable 当&self没加mut
+
 //Option<T>
 //Option<T>的类型推断
 let x = Some(1);//i32
@@ -79,7 +83,7 @@ let z : Option<i32> = None;//需要显式声明类型
 //match模式匹配
 //enum中的某个类型包含的值需要都列出来，match Message{.. ChangeColor(x,y,z) => ...}
 //match需要枚举完，但没有特殊处理归为一类的其他情况可以_代替
-match Message {
+match message {
     Message::Quit => ...,
     Message::Move { x, y } => {}//小细节：不需要加逗号
      _ => (),
