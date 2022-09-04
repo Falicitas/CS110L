@@ -1,3 +1,4 @@
+use crate::dwarf_data::{DwarfData, Error as DwarfError};
 use nix::sys::ptrace;
 use nix::sys::signal;
 use nix::sys::wait::{waitpid, WaitPidFlag, WaitStatus};
@@ -66,11 +67,12 @@ impl Inferior {
         nix::unistd::Pid::from_raw(self.child.id() as i32)
     }
 
+    /// kill the inferior, assume that the inferior is still alive
     pub fn kill(&mut self) {
         match self.child.kill() {
             // .unwrap_or_else(|_| println!("command wasn't running"));
             // .unwrap_or_else(|_| ());
-            Ok(()) => println!("Killing running inferior (pid {})", self.child.id()),//! 暂时没确认为什么可以正常调用.id，在 kill 之后
+            Ok(()) => println!("Killing running inferior (pid {})", self.child.id()), //? 暂时没确认为什么可以正常调用.id，在 kill 之后
             Err(_) => (),
         } // whatever it's killed, the message upon isn't needed.
     }
@@ -88,6 +90,8 @@ impl Inferior {
             other => panic!("waitpid returned unexpected status: {:?}", other),
         })
     }
+
+    /// wake up the paused inferior process
     pub fn continue_run(&self, signal: Option<signal::Signal>) -> Result<(), nix::Error> {
         ptrace::cont(self.pid(), signal)?;
 
@@ -103,5 +107,33 @@ impl Inferior {
                 println!("Child stopped by signal {} at address {:#x}", signal, rip)
             }
         })
+    }
+
+    pub fn print_backtrace(&mut self, debug_data: &DwarfData) -> Result<(), nix::Error> {
+        let regs = ptrace::getregs(self.pid())?;
+        let mut rip = regs.rip as usize;
+        let mut rbp = regs.rbp as usize;
+        loop {
+            let _line = debug_data.get_line_from_addr(rip);
+            let _func = debug_data.get_function_from_addr(rip);
+            match (&_line, &_func) {
+                (None, None) => println!("unknown func (source file not found)"),
+                (Some(line), None) => println!("unknown func ({})", line),
+                (None, Some(func)) => println!("{} (source file not found)", func),
+                (Some(line), Some(func)) => println!("{} ({})", func, line),
+            }
+            if let Some(func) = _func {
+                if func == "main" {
+                    break;
+                }
+            } else {
+                break;
+            }
+            rip = ptrace::read(self.pid(), (rbp + 8) as ptrace::AddressType)? as usize;
+            rbp = ptrace::read(self.pid(), rbp as ptrace::AddressType)? as usize;
+            // function's return address in running is stored 8 bytes above the saved %rbp value.
+            // This return address is effectively %rip (the instruction pointer) for the previous stack frame.
+        }
+        Ok(())
     }
 }

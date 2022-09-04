@@ -1,4 +1,5 @@
 use crate::debugger_command::DebuggerCommand;
+use crate::dwarf_data::{DwarfData, Error as DwarfError};
 use crate::inferior::{self, Inferior};
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
@@ -8,12 +9,25 @@ pub struct Debugger {
     history_path: String,
     readline: Editor<()>,
     inferior: Option<Inferior>,
+    debug_data: DwarfData,
 }
 
 impl Debugger {
     /// Initializes the debugger.
     pub fn new(target: &str) -> Debugger {
         // TODO (milestone 3): initialize the DwarfData
+
+        let debug_data = match DwarfData::from_file(target) {
+            Ok(val) => val,
+            Err(DwarfError::ErrorOpeningFile) => {
+                println!("Could not open file {}", target);
+                std::process::exit(1);
+            }
+            Err(DwarfError::DwarfFormatError(err)) => {
+                println!("Could not debugging symbols from {}: {:?}", target, err);
+                std::process::exit(1);
+            }
+        };
 
         let history_path = format!("{}/.deet_history", std::env::var("HOME").unwrap());
         let mut readline = Editor::<()>::new();
@@ -26,6 +40,7 @@ impl Debugger {
             history_path,
             readline,
             inferior: None,
+            debug_data: debug_data,
         } //self.target
     }
 
@@ -57,7 +72,7 @@ impl Debugger {
                 }
                 DebuggerCommand::Continue => {
                     if let None = &mut self.inferior {
-                        println!("Inferior doesn't exist");
+                        println!("Continue: Inferior doesn't exist");
                         continue;
                     }
                     self.inferior
@@ -66,6 +81,22 @@ impl Debugger {
                         .continue_run(None)
                         .unwrap_or_else(|error| println!("{}", error));
                 } // println!("Inferior doesn't exist");
+                DebuggerCommand::Backtrace => {
+                    if self.inferior.is_none() {
+                        println!(
+                            "Error: you can not use backtrace when there is no process running"
+                        );
+                    }
+                    // let addr = self.debug_data.get_line_from_addr();
+                    else if let Err(error) = self
+                        .inferior
+                        .as_mut()
+                        .unwrap()
+                        .print_backtrace(&self.debug_data)
+                    {
+                        println!("{}", error);
+                    }
+                }
             }
         }
     }
