@@ -3,6 +3,7 @@ use nix::sys::ptrace;
 use nix::sys::signal;
 use nix::sys::wait::{waitpid, WaitPidFlag, WaitStatus};
 use nix::unistd::Pid;
+use std::collections::HashMap;
 use std::mem::size_of;
 use std::process::Child;
 
@@ -37,7 +38,11 @@ pub struct Inferior {
 impl Inferior {
     /// Attempts to start a new inferior process. Returns Some(Inferior) if successful, or None if
     /// an error is encountered.
-    pub fn new(target: &str, args: &Vec<String>, breakpoints: &Vec<usize>) -> Option<Inferior> {
+    pub fn new(
+        target: &str,
+        args: &Vec<String>,
+        breakpoints: &mut HashMap<usize, u8>,
+    ) -> Option<Inferior> {
         // TODO: implement me!
         use std::os::unix::process::CommandExt;
         use std::process::Command;
@@ -57,9 +62,12 @@ impl Inferior {
         // !in order to verify that everything is in working order (if this check fails, simply return None).
         // !You are welcome to call waitpid directly,
         // !or to use the Inferior::wait method that we have provided.
-        for bp in breakpoints {
+        let bps = breakpoints.clone();
+        for bp in bps.keys() {
             match inferior.write_byte(*bp, 0xcc) {
-                Ok(_) => continue,
+                Ok(ori_instr) => {
+                    breakpoints.insert(*bp, ori_instr);
+                }
                 Err(_) => println!("Invalid breakpoint address {:#x}", bp),
             }
         }
@@ -86,13 +94,45 @@ impl Inferior {
     }
 
     /// wake up the paused inferior process
-    pub fn continue_run(&self, signal: Option<signal::Signal>) -> Result<Status, nix::Error> {
+    // pub fn continue_run(&self, signal: Option<signal::Signal>) -> Result<Status, nix::Error> {
+    //     ptrace::cont(self.pid(), signal)?;
+    //     // 简单的理解是，cont指令将 inferior 的线程再次启动，另外类似的指令是PTRACE_SYSCALL
+    //     // 对 ptrace 的主观理解：
+    //     // Traceme用于跟踪。
+    //     // PTRACE_PEEKUSER 读取子进程运行时eax寄存器的值。要在子程序运行完，即 wait 后调用
+    //     // 一篇入门 ptrace 笔记：https://omasko.github.io/2018/04/19/ptrace%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0I/
+    //     self.wait(None)
+    // }
+    pub fn continue_run(
+        &mut self,
+        signal: Option<signal::Signal>,
+        breakpoints: &mut HashMap<usize, u8>,
+    ) -> Result<Status, nix::Error> {
+        let mut regs = ptrace::getregs(self.pid())?;
+        let rip = regs.rip as usize; //? 建议将栈帧加入到 basic theory
+                                     // check if inferior stopped at a breakpoint
+        if let Some(ori_instr) = breakpoints.get(&(rip - 1)) {
+            println!("stopped at a breakpoint");
+            // restore the first byte of the instruction we replaced
+            self.write_byte(rip - 1, *ori_instr).unwrap();
+            // set %rip = %rip - 1 to rewind the instruction pointer
+            regs.rip = (rip - 1) as u64;
+            ptrace::setregs(self.pid(), regs).unwrap(); // go to the next instruction
+            ptrace::step(self.pid(), None).unwrap();
+            //? same as the way dealing with stack frame
+            // wait for inferior to stop due to SIGTRAP, just return if the inferior terminates here
+            match self.wait(None).unwrap() {
+                Status::Exited(exit_code) => return Ok(Status::Exited(exit_code)),
+                Status::Signaled(signal) => return Ok(Status::Signaled(signal)), //? Signaled 和 Stopped的差别
+                Status::Stopped(_, _) => {
+                    // restore 0xcc in the breakpoint location
+                    self.write_byte(rip - 1, 0xcc).unwrap();
+                }
+            }
+        }
+        // resume normal execution
         ptrace::cont(self.pid(), signal)?;
-        // 简单的理解是，cont指令将 inferior 的线程再次启动，另外类似的指令是PTRACE_SYSCALL
-        // 对 ptrace 的主观理解：
-        // Traceme用于跟踪。
-        // PTRACE_PEEKUSER 读取子进程运行时eax寄存器的值。要在子程序运行完，即 wait 后调用
-        // 一篇入门 ptrace 笔记：https://omasko.github.io/2018/04/19/ptrace%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0I/
+        // wait for inferior to stop or terminate
         self.wait(None)
     }
 

@@ -1,11 +1,10 @@
-use std::process::exit;
-
 use crate::debugger_command::DebuggerCommand;
 use crate::dwarf_data::{DwarfData, Error as DwarfError};
+use crate::inferior::Inferior;
 use crate::inferior::Status;
-use crate::inferior::{self, Inferior};
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
+use std::collections::HashMap;
 
 pub struct Debugger {
     target: String,
@@ -13,7 +12,7 @@ pub struct Debugger {
     readline: Editor<()>,
     inferior: Option<Inferior>,
     debug_data: DwarfData,
-    breakpoints: Vec<usize>,
+    breakpoints: HashMap<usize, u8>,
 }
 
 fn parse_address(addr: &str) -> Option<usize> {
@@ -55,7 +54,7 @@ impl Debugger {
             readline,
             inferior: None,
             debug_data: debug_data,
-            breakpoints: Vec::new(),
+            breakpoints: HashMap::new(),
         } //self.target
     }
 
@@ -68,13 +67,21 @@ impl Debugger {
                         self.inferior.as_mut().unwrap().kill();
                         self.inferior = None;
                     }
-                    if let Some(inferior) = Inferior::new(&self.target, &args, &self.breakpoints) {
+                    if let Some(inferior) =
+                        Inferior::new(&self.target, &args, &mut self.breakpoints)
+                    {
                         // Create the inferior
                         self.inferior = Some(inferior);
                         // TODO (milestone 1): make the inferior run
                         // You may use self.inferior.as_mut().unwrap() to get a mutable reference
                         // to the Inferior object
-                        match self.inferior.as_mut().unwrap().continue_run(None).unwrap() {
+                        match self
+                            .inferior
+                            .as_mut()
+                            .unwrap()
+                            .continue_run(None, &mut self.breakpoints)
+                            .unwrap()
+                        {
                             Status::Exited(exit_code) => {
                                 println!("Child exited (status {})", exit_code);
                                 self.inferior = None;
@@ -104,7 +111,13 @@ impl Debugger {
                         println!("Continue: Inferior doesn't exist");
                         continue;
                     }
-                    match self.inferior.as_mut().unwrap().continue_run(None).unwrap() {
+                    match self
+                        .inferior
+                        .as_mut()
+                        .unwrap()
+                        .continue_run(None, &mut self.breakpoints)
+                        .unwrap()
+                    {
                         Status::Exited(exit_code) => {
                             println!("Child exited (status {})", exit_code);
                             self.inferior = None;
@@ -157,14 +170,18 @@ impl Debugger {
                     }
                     if let Some(addr) = parse_address(&location[1..]) {
                         if self.inferior.is_some() {
-                            if let Err(_) = self.inferior.as_mut().unwrap().write_byte(addr, 0xcc) {
-                                println!(" Invalid breakpoint address {:#x}", addr);
-                            } else {
+                            if let Some(instruction) =
+                                self.inferior.as_mut().unwrap().write_byte(addr, 0xcc).ok()
+                            {
+                                // write_byte返回原本的值
                                 println!(
-                                    "Set breakpoint {} at {}",
+                                    "Set breakpoint {} at {:#x}",
                                     self.breakpoints.len(),
-                                    &location[1..]
+                                    addr
                                 );
+                                self.breakpoints.insert(addr, instruction);
+                            } else {
+                                println!("Invalid breakpoint address {:#x}", addr);
                             }
                             //不中断程序，并在断点位置添加 INT = 0xcc
                         } else {
@@ -173,7 +190,7 @@ impl Debugger {
                                 self.breakpoints.len(),
                                 &location[1..]
                             );
-                            self.breakpoints.push(addr);
+                            self.breakpoints.insert(addr, 0);
                         }
                     } else {
                         println!("Unrecognized address.");
