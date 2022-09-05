@@ -3,7 +3,13 @@ use nix::sys::ptrace;
 use nix::sys::signal;
 use nix::sys::wait::{waitpid, WaitPidFlag, WaitStatus};
 use nix::unistd::Pid;
+use std::mem::size_of;
 use std::process::Child;
+
+fn align_addr_to_word(addr: usize) -> usize {
+    addr & (-(size_of::<usize>() as isize) as usize)
+}
+
 pub enum Status {
     /// Indicates inferior stopped. Contains the signal that stopped the process, as well as the
     /// current instruction pointer that it is stopped at.
@@ -31,7 +37,7 @@ pub struct Inferior {
 impl Inferior {
     /// Attempts to start a new inferior process. Returns Some(Inferior) if successful, or None if
     /// an error is encountered.
-    pub fn new(target: &str, args: &Vec<String>) -> Option<Inferior> {
+    pub fn new(target: &str, args: &Vec<String>, breakpoints: &Vec<usize>) -> Option<Inferior> {
         // TODO: implement me!
         use std::os::unix::process::CommandExt;
         use std::process::Command;
@@ -41,8 +47,6 @@ impl Inferior {
             cmd.pre_exec(child_traceme);
         }
         let child = cmd.spawn().ok()?;
-        // println!("stdin:{:?}", child.stdin);
-        // println!("stdout:{:?}", child.stdout);
         let mut inferior = Inferior { child: child };
         // !When a process that has PTRACE_TRACEME enabled（指的就是unsafe块所执行的pre_exec(traceme)）
         // !calls exec（exec指的就是continue_run中的ptrace::cont。所以这两行隐含着 enabled PTRACE_TRACEME 的
@@ -53,13 +57,13 @@ impl Inferior {
         // !in order to verify that everything is in working order (if this check fails, simply return None).
         // !You are welcome to call waitpid directly,
         // !or to use the Inferior::wait method that we have provided.
-        //
+        for bp in breakpoints {
+            match inferior.write_byte(*bp, 0xcc) {
+                Ok(_) => continue,
+                Err(_) => println!("Invalid breakpoint address {:#x}", bp),
+            }
+        }
         Some(inferior)
-        // println!(
-        //     "Inferior::new not implemented! target={}, args={:?}",
-        //     target, args
-        // );
-        // None
     }
 
     /// Returns the pid of this inferior.
@@ -125,5 +129,20 @@ impl Inferior {
             // This return address is effectively %rip (the instruction pointer) for the previous stack frame.
         }
         Ok(())
+    }
+
+    pub fn write_byte(&mut self, addr: usize, val: u8) -> Result<u8, nix::Error> {
+        let aligned_addr = align_addr_to_word(addr);
+        let byte_offset = addr - aligned_addr;
+        let word = ptrace::read(self.pid(), aligned_addr as ptrace::AddressType)? as u64;
+        let orig_byte = (word >> 8 * byte_offset) & 0xff;
+        let masked_word = word & !(0xff << 8 * byte_offset);
+        let updated_word = masked_word | ((val as u64) << 8 * byte_offset);
+        ptrace::write(
+            self.pid(),
+            aligned_addr as ptrace::AddressType,
+            updated_word as *mut std::ffi::c_void,
+        )?;
+        Ok(orig_byte as u8)
     }
 }

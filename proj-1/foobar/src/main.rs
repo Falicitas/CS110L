@@ -22,9 +22,10 @@ pub struct c {
 }
 
 impl c {
-    fn chg(&mut self) {
+    fn len(&mut self) {
+
         // let x = self.t;
-        let x = self.t;
+        // let x = self.t;
         // let x = self;
         // let y = self;
         // println!("{}", self.t);
@@ -45,4 +46,5 @@ fn main() {
     // assert_eq!(Some(4).unwrap_or_else(|| None::<i32>), 4);
     // assert_eq!(, 4);
     // Some(4).unwrap_or_else(|| println!("hhhh"));
+    let x = Vec<usize>::new();
 }

@@ -13,6 +13,16 @@ pub struct Debugger {
     readline: Editor<()>,
     inferior: Option<Inferior>,
     debug_data: DwarfData,
+    breakpoints: Vec<usize>,
+}
+
+fn parse_address(addr: &str) -> Option<usize> {
+    let addr_without_0x = if addr.to_lowercase().starts_with("0x") {
+        &addr[2..]
+    } else {
+        &addr
+    };
+    usize::from_str_radix(addr_without_0x, 16).ok()
 }
 
 impl Debugger {
@@ -31,6 +41,7 @@ impl Debugger {
                 std::process::exit(1);
             }
         };
+        debug_data.print();
 
         let history_path = format!("{}/.deet_history", std::env::var("HOME").unwrap());
         let mut readline = Editor::<()>::new();
@@ -44,6 +55,7 @@ impl Debugger {
             readline,
             inferior: None,
             debug_data: debug_data,
+            breakpoints: Vec::new(),
         } //self.target
     }
 
@@ -56,7 +68,7 @@ impl Debugger {
                         self.inferior.as_mut().unwrap().kill();
                         self.inferior = None;
                     }
-                    if let Some(inferior) = Inferior::new(&self.target, &args) {
+                    if let Some(inferior) = Inferior::new(&self.target, &args, &self.breakpoints) {
                         // Create the inferior
                         self.inferior = Some(inferior);
                         // TODO (milestone 1): make the inferior run
@@ -86,6 +98,7 @@ impl Debugger {
                         println!("Error starting subprocess");
                     }
                 }
+
                 DebuggerCommand::Continue => {
                     if let None = &mut self.inferior {
                         println!("Continue: Inferior doesn't exist");
@@ -110,14 +123,24 @@ impl Debugger {
                         }
                     }
                 } // println!("Inferior doesn't exist");
+
+                DebuggerCommand::Quit => {
+                    if self.inferior.is_some() {
+                        self.inferior.as_mut().unwrap().kill();
+                        self.inferior = None;
+                    }
+                    return;
+                }
+
                 DebuggerCommand::Backtrace => {
                     if self.inferior.is_none() {
                         println!(
                             "Error: you can not use backtrace when there is no process running"
                         );
+                        continue;
                     }
                     // let addr = self.debug_data.get_line_from_addr();
-                    else if let Err(error) = self
+                    if let Err(error) = self
                         .inferior
                         .as_mut()
                         .unwrap()
@@ -126,12 +149,35 @@ impl Debugger {
                         println!("{}", error);
                     }
                 }
-                DebuggerCommand::Quit => {
-                    if self.inferior.is_some() {
-                        self.inferior.as_mut().unwrap().kill();
-                        self.inferior = None;
+
+                DebuggerCommand::Break(location) => {
+                    if !location.starts_with("*") {
+                        println!("Usage: b|break|breakpoint *address");
+                        continue;
                     }
-                    return;
+                    if let Some(addr) = parse_address(&location[1..]) {
+                        if self.inferior.is_some() {
+                            if let Err(_) = self.inferior.as_mut().unwrap().write_byte(addr, 0xcc) {
+                                println!(" Invalid breakpoint address {:#x}", addr);
+                            } else {
+                                println!(
+                                    "Set breakpoint {} at {}",
+                                    self.breakpoints.len(),
+                                    &location[1..]
+                                );
+                            }
+                            //不中断程序，并在断点位置添加 INT = 0xcc
+                        } else {
+                            println!(
+                                "Set breakpoint {} at {}",
+                                self.breakpoints.len(),
+                                &location[1..]
+                            );
+                            self.breakpoints.push(addr);
+                        }
+                    } else {
+                        println!("Unrecognized address.");
+                    }
                 }
             }
         }
@@ -160,13 +206,13 @@ impl Debugger {
                     if line.trim().len() == 0 {
                         continue;
                     }
-                    self.readline.add_history_entry(line.as_str()); // 暂时没研究
+                    self.readline.add_history_entry(line.as_str()); //? 暂时没研究
                     if let Err(err) = self.readline.save_history(&self.history_path) {
                         println!(
                             "Warning: failed to save history file at {}: {}",
                             self.history_path, err
                         );
-                    } // 暂时没研究
+                    } //? 暂时没研究
                     let tokens: Vec<&str> = line.split_whitespace().collect();
                     if let Some(cmd) = DebuggerCommand::from_tokens(&tokens) {
                         return cmd;
