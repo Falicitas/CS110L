@@ -164,36 +164,75 @@ impl Debugger {
                 }
 
                 DebuggerCommand::Break(location) => {
-                    if !location.starts_with("*") {
-                        println!("Usage: b|break|breakpoint *address");
+                    // if !location.starts_with("*") {
+                    //     println!("Usage: b|break|breakpoint *address");
+                    //     continue;
+                    // }
+                    let breakpoint_addr;
+                    if location.starts_with("*") {
+                        if let Some(address) = parse_address(&location[1..]) {
+                            breakpoint_addr = address;
+                        } else {
+                            println!("Invalid address");
+                            continue;
+                        }
+                    } else if let Some(line) = usize::from_str_radix(&location, 10).ok() {
+                        //? str_radixq
+                        if let Some(address) = self.debug_data.get_addr_for_line(None, line) {
+                            breakpoint_addr = address;
+                        } else {
+                            println!("Invalid line number");
+                            continue;
+                        }
+                    } else if let Some(address) =
+                        self.debug_data.get_addr_for_function(None, &location)
+                    {
+                        breakpoint_addr = address;
+                    } else {
+                        println!("Usage: b|break|breakpoint *address|line|func");
                         continue;
                     }
-                    if let Some(addr) = parse_address(&location[1..]) {
-                        if self.inferior.is_some() {
-                            if let Some(instruction) =
-                                self.inferior.as_mut().unwrap().write_byte(addr, 0xcc).ok()
-                            {
-                                // write_byte返回原本的值
-                                println!(
-                                    "Set breakpoint {} at {:#x}",
-                                    self.breakpoints.len(),
-                                    addr
-                                );
-                                self.breakpoints.insert(addr, instruction);
-                            } else {
-                                println!("Invalid breakpoint address {:#x}", addr);
-                            }
-                            //不中断程序，并在断点位置添加 INT = 0xcc
-                        } else {
+                    // if let Some(addr) = parse_address(&location[1..]) {
+                    //     if self.inferior.is_some() {
+                    //         if let Some(instruction) =
+                    //             self.inferior.as_mut().unwrap().write_byte(addr, 0xcc).ok()
+                    //         {
+                    //             // write_byte返回原本的值
+                    //             println!(
+                    //                 "Set breakpoint {} at {:#x}",
+                    //                 self.breakpoints.len(),
+                    //                 addr
+                    //             );
+                    //             self.breakpoints.insert(addr, instruction);
+                    //         } else {
+                    //             println!("Invalid breakpoint address {:#x}", addr);
+                    //         }
+                    //         //不中断程序，并在断点位置添加 INT = 0xcc
+                    if self.inferior.is_some() {
+                        if let Some(instruction) = self
+                            .inferior
+                            .as_mut()
+                            .unwrap()
+                            .write_byte(breakpoint_addr, 0xcc)
+                            .ok()
+                        {
                             println!(
-                                "Set breakpoint {} at {}",
+                                "Set breakpoint {} at {:#x}",
                                 self.breakpoints.len(),
-                                &location[1..]
+                                breakpoint_addr
                             );
-                            self.breakpoints.insert(addr, 0);
+                            self.breakpoints.insert(breakpoint_addr, instruction);
+                        } else {
+                            println!("Invalid breakpoint address {:#x}", breakpoint_addr);
                         }
                     } else {
-                        println!("Unrecognized address.");
+                        // when the inferior is initiated, these breakpoints will be installed
+                        println!(
+                            "Set breakpoint {} at {:#x}",
+                            self.breakpoints.len(),
+                            breakpoint_addr
+                        );
+                        self.breakpoints.insert(breakpoint_addr, 0);
                     }
                 }
             }
