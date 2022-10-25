@@ -59,12 +59,12 @@ fn print_diff(lcs_table: &Grid, lines1: &Vec<String>, lines2: &Vec<String>, i: u
         && (i == 0 || lcs_table.get(i, j - 1).unwrap() > lcs_table.get(i - 1, j).unwrap())
     {
         print_diff(lcs_table, lines1, lines2, i, j - 1);
-        println!("> {}", lines2[j - 1]);
+        println!("+ {}", lines2[j - 1]);
     } else if i > 0
         && (j == 0 || lcs_table.get(i, j - 1).unwrap() <= lcs_table.get(i - 1, j).unwrap())
     {
         print_diff(lcs_table, lines1, lines2, i - 1, j);
-        println!("< {}", lines1[i - 1]);
+        println!("- {}", lines1[i - 1]);
     } else {
         println!("");
     }
