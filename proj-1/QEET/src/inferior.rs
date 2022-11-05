@@ -5,7 +5,9 @@ use nix::sys::wait::{waitpid, WaitPidFlag, WaitStatus};
 use nix::unistd::Pid;
 use std::collections::HashMap;
 use std::mem::size_of;
+use std::os::unix::process::CommandExt;
 use std::process::Child;
+use std::process::Command;
 
 fn align_addr_to_word(addr: usize) -> usize {
     addr & (-(size_of::<usize>() as isize) as usize)
@@ -43,9 +45,7 @@ impl Inferior {
         args: &Vec<String>,
         breakpoints: &mut HashMap<usize, u8>,
     ) -> Option<Inferior> {
-        // TODO: implement me!
-        use std::os::unix::process::CommandExt;
-        use std::process::Command;
+        // #begin: trace the inferior.
         let mut cmd = Command::new(target);
         cmd.args(args);
         unsafe {
@@ -53,10 +53,12 @@ impl Inferior {
         }
         let child = cmd.spawn().ok()?;
         let mut inferior = Inferior { child: child };
+        // #end
         // When a process that has PTRACE_TRACEME enabled
         // calls exec（exec corresponds to ptrace::cont in continue_run),
         // the operating system will load the specified program into the process,
         // and then (before the new program starts running) it will pause the process using SIGTRAP.
+
         let bps = breakpoints.clone();
         for bp in bps.keys() {
             match inferior.write_byte(*bp, 0xcc) {
@@ -93,9 +95,10 @@ impl Inferior {
         signal: Option<signal::Signal>,
         breakpoints: &mut HashMap<usize, u8>,
     ) -> Result<Status, nix::Error> {
+        // #begin: check if inferior stopped at a breakpoint
         let mut regs = ptrace::getregs(self.pid())?;
         let rip = regs.rip as usize;
-        // check if inferior stopped at a breakpoint
+
         if let Some(ori_instr) = breakpoints.get(&(rip - 1)) {
             println!("stopped at a breakpoint");
             // restore the first byte of the instruction we replaced
@@ -115,6 +118,7 @@ impl Inferior {
                 }
             }
         }
+        // #end
         // resume normal execution
         ptrace::cont(self.pid(), signal)?;
         // wait for inferior to stop or terminate
@@ -131,6 +135,7 @@ impl Inferior {
     }
 
     pub fn print_backtrace(&mut self, debug_data: &DwarfData) -> Result<(), nix::Error> {
+        // #begin: backtrace the inferior which get trapped by SIGNAL, and print the father call function simultaniously.
         let regs = ptrace::getregs(self.pid())?;
         let mut rip = regs.rip as usize;
         let mut rbp = regs.rbp as usize;
@@ -155,6 +160,7 @@ impl Inferior {
             // function's return address in running is stored 8 bytes above the saved %rbp value.
             // This return address is effectively %rip (the instruction pointer) for the previous stack frame.
         }
+        // #end
         Ok(())
     }
 

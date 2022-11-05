@@ -1,0 +1,10 @@
+/home/kinesis/Desktop/CS_gym/CS110L/proj-1/QEET/target/debug/deps/deet-e2e4a6e07278c5c0.rmeta: src/main.rs src/debugger.rs src/debugger_command.rs src/dwarf_data.rs src/gimli_wrapper.rs src/inferior.rs
+
+/home/kinesis/Desktop/CS_gym/CS110L/proj-1/QEET/target/debug/deps/deet-e2e4a6e07278c5c0.d: src/main.rs src/debugger.rs src/debugger_command.rs src/dwarf_data.rs src/gimli_wrapper.rs src/inferior.rs
+
+src/main.rs:
+src/debugger.rs:
+src/debugger_command.rs:
+src/dwarf_data.rs:
+src/gimli_wrapper.rs:
+src/inferior.rs:

@@ -1,5 +1,5 @@
 #include <stdlib.h>
 
 int main() {
-    asm("syscall" :: "a"(60), "D"(0));
+    asm("syscall" ::"a"(60), "D"(0));
 }

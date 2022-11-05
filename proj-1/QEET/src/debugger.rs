@@ -6,15 +6,6 @@ use rustyline::error::ReadlineError;
 use rustyline::Editor;
 use std::collections::HashMap;
 
-pub struct Debugger {
-    target: String,
-    history_path: String,
-    readline: Editor<()>,
-    inferior: Option<Inferior>,
-    debug_data: DwarfData,
-    breakpoints: HashMap<usize, u8>,
-}
-
 fn parse_address(addr: &str) -> Option<usize> {
     let addr_without_0x = if addr.to_lowercase().starts_with("0x") {
         &addr[2..]
@@ -24,9 +15,19 @@ fn parse_address(addr: &str) -> Option<usize> {
     usize::from_str_radix(addr_without_0x, 16).ok()
 }
 
+pub struct Debugger {
+    target: String,
+    history_path: String,
+    readline: Editor<()>,
+    inferior: Option<Inferior>,
+    debug_data: DwarfData,
+    breakpoints: HashMap<usize, u8>,
+}
+
 impl Debugger {
     /// Initializes the debugger.
     pub fn new(target: &str) -> Debugger {
+        // #begin: Initializes DwarfData object
         let debug_data = match DwarfData::from_file(target) {
             Ok(val) => val,
             Err(DwarfError::ErrorOpeningFile) => {
@@ -39,16 +40,18 @@ impl Debugger {
             }
         };
         debug_data.print();
+        // #end
 
         let history_path = format!("{}/.deet_history", std::env::var("HOME").unwrap());
         let mut readline = Editor::<()>::new();
         // Attempt to load history from ~/.deet_history if it exists
         let _ = readline.load_history(&history_path);
 
+        // #begin: return Instantiated Object
         Debugger {
             target: target.to_string(),
             // target here is the X of "cargo run X",
-            // like: samples/sleepy_print.
+            // like "samples/sleepy_print".
             history_path,
             readline,
             inferior: None,
@@ -62,17 +65,21 @@ impl Debugger {
             match self.get_next_command() {
                 // (deet) captured r 3, do a match, and let args = ["3"]
                 DebuggerCommand::Run(args) => {
+                    // #begin: kill the inferior if it exists
                     if self.inferior.is_some() {
                         self.inferior.as_mut().unwrap().kill();
                         self.inferior = None;
                     }
+                    // #end
+
+                    // #begin: try to instantiate a inferior
                     if let Some(inferior) =
                         Inferior::new(&self.target, &args, &mut self.breakpoints)
                     {
                         // Create the inferior
                         self.inferior = Some(inferior);
-                        // You may use self.inferior.as_mut().unwrap() to get a mutable reference
-                        // to the Inferior object
+                        // #begin: run inferior until inferior's state occurs to change.
+                        // use self.inferior.as_mut().unwrap() to get a mutable reference to the Inferior object
                         match self
                             .inferior
                             .as_mut()
@@ -97,9 +104,11 @@ impl Debugger {
                                 }
                             }
                         }
+                        // #end
                     } else {
                         println!("Error starting subprocess");
                     }
+                    // #end
                 }
 
                 DebuggerCommand::Continue => {
@@ -107,6 +116,7 @@ impl Debugger {
                         println!("Error: Inferior doesn't exist");
                         continue;
                     }
+                    // #begin: run inferior until inferior's state occurs to change.
                     match self
                         .inferior
                         .as_mut()
@@ -131,13 +141,16 @@ impl Debugger {
                             }
                         }
                     }
+                    // #end
                 }
 
                 DebuggerCommand::Quit => {
+                    // #begin: kill the inferior if it exists
                     if self.inferior.is_some() {
                         self.inferior.as_mut().unwrap().kill();
                         self.inferior = None;
                     }
+                    // #end
                     return;
                 }
 
@@ -148,6 +161,7 @@ impl Debugger {
                         );
                         continue;
                     }
+
                     if let Err(error) = self
                         .inferior
                         .as_mut()
@@ -169,14 +183,19 @@ impl Debugger {
                         }
                     } else if let Some(line) = usize::from_str_radix(&location, 10).ok() {
                         //? str_radixq
-                        if let Some(address) = self.debug_data.get_addr_for_line(None, line) {
+                        println!("{}", line);
+                        if let Some(address) = self
+                            .debug_data
+                            .get_addr_for_line(Some(&format!("{}.c", &self.target)), line)
+                        {
                             breakpoint_addr = address;
                         } else {
                             println!("Invalid line number");
                             continue;
                         }
-                    } else if let Some(address) =
-                        self.debug_data.get_addr_for_function(None, &location)
+                    } else if let Some(address) = self
+                        .debug_data
+                        .get_addr_for_function(Some(&format!("{}.c", &self.target)), &location)
                     {
                         breakpoint_addr = address;
                     } else {

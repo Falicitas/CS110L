@@ -1,0 +1,14 @@
+/home/kinesis/Desktop/CS_gym/CS110L/proj-1/QEET/target/debug/deps/target_lexicon-7dbe8b3870144a4b.rmeta: /home/kinesis/.cargo/registry/src/rsproxy.cn-8f6827c7555bfaf8/target-lexicon-0.10.0/src/lib.rs /home/kinesis/.cargo/registry/src/rsproxy.cn-8f6827c7555bfaf8/target-lexicon-0.10.0/src/host.rs /home/kinesis/.cargo/registry/src/rsproxy.cn-8f6827c7555bfaf8/target-lexicon-0.10.0/src/parse_error.rs /home/kinesis/.cargo/registry/src/rsproxy.cn-8f6827c7555bfaf8/target-lexicon-0.10.0/src/targets.rs /home/kinesis/.cargo/registry/src/rsproxy.cn-8f6827c7555bfaf8/target-lexicon-0.10.0/src/triple.rs /home/kinesis/Desktop/CS_gym/CS110L/proj-1/QEET/target/debug/build/target-lexicon-7453f0384cbbfb22/out/host.rs
+
+/home/kinesis/Desktop/CS_gym/CS110L/proj-1/QEET/target/debug/deps/libtarget_lexicon-7dbe8b3870144a4b.rlib: /home/kinesis/.cargo/registry/src/rsproxy.cn-8f6827c7555bfaf8/target-lexicon-0.10.0/src/lib.rs /home/kinesis/.cargo/registry/src/rsproxy.cn-8f6827c7555bfaf8/target-lexicon-0.10.0/src/host.rs /home/kinesis/.cargo/registry/src/rsproxy.cn-8f6827c7555bfaf8/target-lexicon-0.10.0/src/parse_error.rs /home/kinesis/.cargo/registry/src/rsproxy.cn-8f6827c7555bfaf8/target-lexicon-0.10.0/src/targets.rs /home/kinesis/.cargo/registry/src/rsproxy.cn-8f6827c7555bfaf8/target-lexicon-0.10.0/src/triple.rs /home/kinesis/Desktop/CS_gym/CS110L/proj-1/QEET/target/debug/build/target-lexicon-7453f0384cbbfb22/out/host.rs
+
+/home/kinesis/Desktop/CS_gym/CS110L/proj-1/QEET/target/debug/deps/target_lexicon-7dbe8b3870144a4b.d: /home/kinesis/.cargo/registry/src/rsproxy.cn-8f6827c7555bfaf8/target-lexicon-0.10.0/src/lib.rs /home/kinesis/.cargo/registry/src/rsproxy.cn-8f6827c7555bfaf8/target-lexicon-0.10.0/src/host.rs /home/kinesis/.cargo/registry/src/rsproxy.cn-8f6827c7555bfaf8/target-lexicon-0.10.0/src/parse_error.rs /home/kinesis/.cargo/registry/src/rsproxy.cn-8f6827c7555bfaf8/target-lexicon-0.10.0/src/targets.rs /home/kinesis/.cargo/registry/src/rsproxy.cn-8f6827c7555bfaf8/target-lexicon-0.10.0/src/triple.rs /home/kinesis/Desktop/CS_gym/CS110L/proj-1/QEET/target/debug/build/target-lexicon-7453f0384cbbfb22/out/host.rs
+
+/home/kinesis/.cargo/registry/src/rsproxy.cn-8f6827c7555bfaf8/target-lexicon-0.10.0/src/lib.rs:
+/home/kinesis/.cargo/registry/src/rsproxy.cn-8f6827c7555bfaf8/target-lexicon-0.10.0/src/host.rs:
+/home/kinesis/.cargo/registry/src/rsproxy.cn-8f6827c7555bfaf8/target-lexicon-0.10.0/src/parse_error.rs:
+/home/kinesis/.cargo/registry/src/rsproxy.cn-8f6827c7555bfaf8/target-lexicon-0.10.0/src/targets.rs:
+/home/kinesis/.cargo/registry/src/rsproxy.cn-8f6827c7555bfaf8/target-lexicon-0.10.0/src/triple.rs:
+/home/kinesis/Desktop/CS_gym/CS110L/proj-1/QEET/target/debug/build/target-lexicon-7453f0384cbbfb22/out/host.rs:
+
+# env-dep:OUT_DIR=/home/kinesis/Desktop/CS_gym/CS110L/proj-1/QEET/target/debug/build/target-lexicon-7453f0384cbbfb22/out

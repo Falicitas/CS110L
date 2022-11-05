@@ -4,6 +4,11 @@ int global = 5;
 
 void func3(int a) {
     printf("Hello from func3! %d\n", a);
+    int cnt = 100;
+    while (cnt--) {
+        sleep(1);
+        printf("%d\n", cnt);
+    }
 }
 
 void func2(int a, int b) {
